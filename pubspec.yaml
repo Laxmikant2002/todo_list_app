@@ -15,8 +15,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: ^0.20.2
-  firebase_auth: ^4.17.3
-  firebase_database: ^10.3.1
+  firebase_auth: ^6.2.0
+  firebase_database: ^12.1.4
   formz: ^0.4.0
   equatable: ^2.0.5
 
