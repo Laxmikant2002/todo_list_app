@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:todo_list_app/auth/repository/auth_repository.dart';
-import 'package:todo_list_app/auth/view/login_page.dart';
-import 'package:todo_list_app/auth/view/signup_page.dart';
-import 'package:todo_list_app/tasks/view/home_page.dart';
-import 'package:todo_list_app/tasks/repository/task_repository.dart';
+import 'package:todo_list_app/auth/auth.dart';
+import 'package:todo_list_app/tasks/task.dart';
 
 class App extends StatelessWidget {
   const App({super.key});

@@ -34,6 +34,4 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   runApp(await builder());
 }
 
-void main() {
-  runApp(const App());
-}
+void main() => bootstrap(() async => const App());

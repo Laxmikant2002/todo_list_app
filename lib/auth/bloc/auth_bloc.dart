@@ -22,18 +22,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _onEmailChanged(AuthEmailChanged event, Emitter<AuthState> emit) {
     final emailInput = EmailInput.dirty(event.email);
     final formStatus = Formz.validate([emailInput, state.passwordInput]);
-    String? errorMessage;
-    if (emailInput.error != null) {
-      errorMessage = 'Please enter a valid email.';
-    } else if (state.passwordInput.error != null) {
-      errorMessage = 'Please enter a valid password.';
-    }
     emit(
       state.copyWith(
         emailInput: emailInput,
         formStatus: formStatus,
         authStatus: AuthStatus.initial,
-        errorMessage: errorMessage,
+        errorMessage: null,
       ),
     );
   }
@@ -41,18 +35,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _onPasswordChanged(AuthPasswordChanged event, Emitter<AuthState> emit) {
     final passwordInput = PasswordInput.dirty(event.password);
     final formStatus = Formz.validate([state.emailInput, passwordInput]);
-    String? errorMessage;
-    if (state.emailInput.error != null) {
-      errorMessage = 'Please enter a valid email.';
-    } else if (passwordInput.error != null) {
-      errorMessage = 'Please enter a valid password.';
-    }
     emit(
       state.copyWith(
         passwordInput: passwordInput,
         formStatus: formStatus,
         authStatus: AuthStatus.initial,
-        errorMessage: errorMessage,
+        errorMessage: null,
       ),
     );
   }
@@ -62,20 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     if (state.formStatus != FormzStatus.valid) {
-      String? errorMessage;
-      if (state.emailInput.error != null) {
-        errorMessage = 'Please enter a valid email.';
-      } else if (state.passwordInput.error != null) {
-        errorMessage = 'Please enter a valid password.';
-      } else {
-        errorMessage = 'Please enter valid email and password.';
-      }
-      emit(
-        state.copyWith(
-          authStatus: AuthStatus.failure,
-          errorMessage: errorMessage,
-        ),
-      );
+      emit(state.copyWith(authStatus: AuthStatus.failure));
       return;
     }
 
@@ -102,20 +77,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     if (state.formStatus != FormzStatus.valid) {
-      String? errorMessage;
-      if (state.emailInput.error != null) {
-        errorMessage = 'Please enter a valid email.';
-      } else if (state.passwordInput.error != null) {
-        errorMessage = 'Please enter a valid password.';
-      } else {
-        errorMessage = 'Please enter valid email and password.';
-      }
-      emit(
-        state.copyWith(
-          authStatus: AuthStatus.failure,
-          errorMessage: errorMessage,
-        ),
-      );
+      emit(state.copyWith(authStatus: AuthStatus.failure));
       return;
     }
 
