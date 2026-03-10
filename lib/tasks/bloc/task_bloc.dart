@@ -12,6 +12,48 @@ part 'task_event.dart';
 part 'task_state.dart';
 
 class TaskBloc extends Bloc<TaskEvent, TaskState> {
+  TaskBloc({required TaskRepository taskRepository})
+    : _taskRepository = taskRepository,
+      super(const TaskState()) {
+    on<TaskLoadRequested>(_onLoadRequested);
+    on<TaskFormInitialized>(_onFormInitialized);
+    on<TaskTitleChanged>(_onTitleChanged);
+    on<TaskDescriptionChanged>(_onDescriptionChanged);
+    on<TaskDueDateChanged>(_onDueDateChanged);
+    on<TaskSubmitted>(_onSubmitted);
+    on<TaskUpdateRequested>(_onUpdateRequested);
+    on<TaskDeleteRequested>(_onDeleteRequested);
+    on<TaskToggleCompletionRequested>(_onToggleCompletionRequested);
+    on<TasksUpdated>(_onTasksUpdated);
+
+    _initStreamListener();
+  }
+
+  final TaskRepository _taskRepository;
+  StreamSubscription<List<Task>>? _tasksSubscription;
+
+  void _initStreamListener() {
+    _tasksSubscription?.cancel();
+    _tasksSubscription = _taskRepository.tasksStream().listen(
+      (updatedTasks) {
+        debugPrint('📡 Stream update: ${updatedTasks.length} tasks');
+        if (!isClosed) {
+          add(TasksUpdated(updatedTasks));
+        }
+      },
+      onError: (error, stackTrace) {
+        debugPrint('❌ Stream error: $error');
+        if (!isClosed) {
+          add(const TasksUpdated([]));
+        }
+      },
+    );
+  }
+
+  void _onTasksUpdated(TasksUpdated event, Emitter<TaskState> emit) {
+    emit(state.copyWith(status: TaskStatus.success, tasks: event.tasks));
+  }
+
   void _onFormInitialized(TaskFormInitialized event, Emitter<TaskState> emit) {
     final titleInput = TitleInput.dirty(event.task?.title ?? '');
     final descriptionInput = DescriptionInput.dirty(
@@ -31,23 +73,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     );
   }
 
-  TaskBloc({required TaskRepository taskRepository})
-    : _taskRepository = taskRepository,
-      super(const TaskState()) {
-    on<TaskLoadRequested>(_onLoadRequested);
-    on<TaskFormInitialized>(_onFormInitialized);
-    on<TaskTitleChanged>(_onTitleChanged);
-    on<TaskDescriptionChanged>(_onDescriptionChanged);
-    on<TaskDueDateChanged>(_onDueDateChanged);
-    on<TaskSubmitted>(_onSubmitted);
-    on<TaskUpdateRequested>(_onUpdateRequested);
-    on<TaskDeleteRequested>(_onDeleteRequested);
-    on<TaskToggleCompletionRequested>(_onToggleCompletionRequested);
-  }
-
-  final TaskRepository _taskRepository;
-  StreamSubscription<List<Task>>? _tasksSubscription;
-
   Future<void> _onLoadRequested(
     TaskLoadRequested event,
     Emitter<TaskState> emit,
@@ -57,36 +82,8 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       final tasks = await _taskRepository.fetchTasks();
       debugPrint('📥 Fetched tasks: ${tasks.length}');
       emit(state.copyWith(status: TaskStatus.success, tasks: tasks));
-
-      await _tasksSubscription?.cancel();
-      debugPrint('🔄 Setting up tasks stream...');
-      _tasksSubscription = _taskRepository.tasksStream().listen(
-        (updatedTasks) {
-          debugPrint('📡 Stream update: ${updatedTasks.length} tasks');
-          if (!isClosed) {
-            emit(
-              state.copyWith(
-                status: TaskStatus.success,
-                tasks: updatedTasks,
-              ),
-            );
-          }
-        },
-        onError: (error, stackTrace) {
-          debugPrint('❌ Stream error: $error');
-          if (!isClosed) {
-            emit(
-              state.copyWith(
-                status: TaskStatus.failure,
-                errorMessage: error.toString(),
-              ),
-            );
-          }
-        },
-      );
     } catch (e, stack) {
-      debugPrint('🔥 Exception in _onLoadRequested: $e');
-      debugPrint('$stack');
+      debugPrint('🔥 Exception in _onLoadRequested: $e\n$stack');
       emit(
         state.copyWith(status: TaskStatus.failure, errorMessage: e.toString()),
       );
