@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../repository/task_repository.dart';
 import '../model/task.dart';
@@ -54,12 +55,38 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     emit(state.copyWith(status: TaskStatus.loading));
     try {
       final tasks = await _taskRepository.fetchTasks();
+      debugPrint('📥 Fetched tasks: ${tasks.length}');
       emit(state.copyWith(status: TaskStatus.success, tasks: tasks));
-      _tasksSubscription?.cancel();
-      _tasksSubscription = _taskRepository.tasksStream().listen((updatedTasks) {
-        add(const TaskLoadRequested());
-      });
-    } catch (e) {
+
+      await _tasksSubscription?.cancel();
+      debugPrint('🔄 Setting up tasks stream...');
+      _tasksSubscription = _taskRepository.tasksStream().listen(
+        (updatedTasks) {
+          debugPrint('📡 Stream update: ${updatedTasks.length} tasks');
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                status: TaskStatus.success,
+                tasks: updatedTasks,
+              ),
+            );
+          }
+        },
+        onError: (error, stackTrace) {
+          debugPrint('❌ Stream error: $error');
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                status: TaskStatus.failure,
+                errorMessage: error.toString(),
+              ),
+            );
+          }
+        },
+      );
+    } catch (e, stack) {
+      debugPrint('🔥 Exception in _onLoadRequested: $e');
+      debugPrint('$stack');
       emit(
         state.copyWith(status: TaskStatus.failure, errorMessage: e.toString()),
       );
@@ -112,7 +139,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
           dueDate: state.dueDate,
         ),
       );
-      emit(state.copyWith(status: TaskStatus.success));
     } catch (e) {
       emit(
         state.copyWith(status: TaskStatus.failure, errorMessage: e.toString()),
@@ -126,7 +152,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   ) async {
     try {
       await _taskRepository.updateTask(event.task);
-      add(const TaskLoadRequested());
     } catch (e) {
       emit(
         state.copyWith(status: TaskStatus.failure, errorMessage: e.toString()),
@@ -140,7 +165,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   ) async {
     try {
       await _taskRepository.deleteTask(event.taskId);
-      add(const TaskLoadRequested());
     } catch (e) {
       emit(
         state.copyWith(status: TaskStatus.failure, errorMessage: e.toString()),

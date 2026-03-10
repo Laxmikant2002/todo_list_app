@@ -63,3 +63,10 @@ final class TaskToggleCompletionRequested extends TaskEvent {
   @override
   List<Object> get props => [task];
 }
+
+final class TasksUpdated extends TaskEvent {
+  final List<Task> tasks;
+  const TasksUpdated(this.tasks);
+  @override
+  List<Object> get props => [tasks];
+}

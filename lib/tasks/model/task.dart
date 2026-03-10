@@ -1,3 +1,5 @@
+import 'package:firebase_database/firebase_database.dart';
+
 class Task {
   final String id;
   final String title;
@@ -14,6 +16,24 @@ class Task {
     required this.createdAt,
     this.dueDate,
   });
+
+  factory Task.fromSnapshot(DataSnapshot snapshot) {
+    final raw = snapshot.value;
+    if (raw is! Map) {
+      throw const FormatException('Task snapshot is not a map');
+    }
+    final data = Map<String, dynamic>.from(raw);
+    return Task(
+      id: snapshot.key ?? '',
+      title: data['title'] as String,
+      description: data['description'] as String?,
+      isCompleted: data['isCompleted'] as bool? ?? false,
+      createdAt: DateTime.parse(data['createdAt'] as String),
+      dueDate: data['dueDate'] != null
+          ? DateTime.parse(data['dueDate'] as String)
+          : null,
+    );
+  }
 
   factory Task.fromJson(String id, Map<String, dynamic> json) {
     return Task(

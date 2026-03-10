@@ -104,7 +104,10 @@ class _HomeView extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => AddEditTaskPage(task: task),
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<TaskBloc>(),
+                        child: AddEditTaskPage(task: task),
+                      ),
                     ),
                   );
                 },
@@ -117,7 +120,12 @@ class _HomeView extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const AddEditTaskPage()),
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: context.read<TaskBloc>(),
+                child: const AddEditTaskPage(),
+              ),
+            ),
           );
         },
         backgroundColor: AppColors.primary,
