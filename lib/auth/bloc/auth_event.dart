@@ -30,3 +30,7 @@ final class AuthSignUpSubmitted extends AuthEvent {
 final class AuthSignInSubmitted extends AuthEvent {
   const AuthSignInSubmitted();
 }
+
+final class AuthGoogleSignInSubmitted extends AuthEvent {
+  const AuthGoogleSignInSubmitted();
+}

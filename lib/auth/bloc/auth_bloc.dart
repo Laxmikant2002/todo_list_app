@@ -15,9 +15,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthPasswordChanged>(_onPasswordChanged);
     on<AuthSignUpSubmitted>(_onSignUpSubmitted);
     on<AuthSignInSubmitted>(_onSignInSubmitted);
+    on<AuthGoogleSignInSubmitted>(_onGoogleSignInSubmitted);
   }
 
   final AuthRepository authRepository;
+  Future<void> _onGoogleSignInSubmitted(
+    AuthGoogleSignInSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(authStatus: AuthStatus.loading, errorMessage: null));
+
+    try {
+      await authRepository.signInWithGoogle();
+      emit(state.copyWith(authStatus: AuthStatus.success));
+    } catch (e) {
+      print('Google Sign-In error: $e');
+      emit(
+        state.copyWith(
+          authStatus: AuthStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
 
   void _onEmailChanged(AuthEmailChanged event, Emitter<AuthState> emit) {
     final emailInput = EmailInput.dirty(event.email);

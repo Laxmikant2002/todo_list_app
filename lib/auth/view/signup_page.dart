@@ -148,6 +148,25 @@ class _SignUpView extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
+              // Google Sign-In button
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  return OutlinedButton.icon(
+                    onPressed: state.authStatus == AuthStatus.loading
+                        ? null
+                        : () => context.read<AuthBloc>().add(const AuthGoogleSignInSubmitted()),
+                    icon: Icon(Icons.android, color: AppColors.textPrimary), // Replace with Google logo asset if available
+                    label: const Text('Sign in with Google'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textPrimary,
+                      side: BorderSide(color: AppColors.border),
+                      minimumSize: const Size(double.infinity, 56),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
               // Link to sign in
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
